@@ -9,7 +9,7 @@ import type { Item } from '../lib/dcgs'
 const props = defineProps<{ m: Item }>()
 const r = computed(() => props.m.row!)
 const ch = computed(() => Number(r.value.channels))
-const tries = (f: string) => f === 'ADX' || f === 'WAV'                       // formats the worker may be able to play (a WAV only when it is plain PCM)
+const tries = (f: string) => f === 'ADX' || f === 'WAV' || /^DTPK (ADPCM|PCM)/.test(f)                       // formats the worker may be able to play (a WAV only when it is plain PCM)
 const why = computed(() => (props.m.bank ? r.value.format + 's are listed, not decoded' : !tries(r.value.format) ? r.value.format + ' streams are listed, not decoded' : ''))
 const bad = ref(false)
 const src = ref('')
@@ -44,7 +44,8 @@ const fmtInt = (n: number) => n.toLocaleString('en-US')
           <template v-if="!m.bank">
             <div><dt>Length</dt><dd class="mono">{{ m.dur }}</dd></div>
             <div><dt>Channels</dt><dd>{{ ch === 1 ? 'Mono' : ch === 2 ? 'Stereo' : ch }}</dd></div>
-            <div><dt>Rate</dt><dd class="mono">{{ fmtInt(Number(r.rate)) }} Hz</dd></div>
+            <div v-if="r.format.startsWith('DTPK')"><dt>Rate</dt><dd>Not stored: played at {{ fmtInt(Number(r.rate)) }} Hz</dd></div>
+            <div v-else><dt>Rate</dt><dd class="mono">{{ fmtInt(Number(r.rate)) }} Hz</dd></div>
             <div><dt>Samples</dt><dd class="mono">{{ fmtInt(Number(r.samples)) }}</dd></div>
           </template>
           <div><dt>Bytes</dt><dd class="mono">{{ fmtInt(Number(r.bytes)) }}</dd></div>

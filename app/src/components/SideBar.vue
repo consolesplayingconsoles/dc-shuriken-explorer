@@ -66,7 +66,7 @@ function copyId(text: string) {
 /* ── Play a sound from its row (one at a time; the same button stops it) ── */
 const playing = ref('')
 let player: HTMLAudioElement | null = null
-const playable = (m: Item) => m.kind === 'audio' && !m.bank && !!m.row && m.row.format === 'ADX'
+const playable = (m: Item) => m.kind === 'audio' && !m.bank && !!m.row && (m.row.format === 'ADX' || /^DTPK (ADPCM|PCM)/.test(m.row.format))
 async function playRow(m: Item) {
   if (player) { player.pause(); player = null }
   if (playing.value === m.id) { playing.value = ''; return }

@@ -202,9 +202,9 @@ function addTextureItems(out: Built) {
 function addSoundItems(out: Built, rows: Row[] | undefined) {
   for (const r of rows || []) {
     if (r.format === 'unknown') continue                       // an archive entry that is not audio (a motion, a model): not a sound
-    const i = Number(r.index), bank = !['ADX', 'WAV', 'STR'].includes(r.format), lo = Math.floor(i / 100) * 100, file = r.file.toUpperCase()
+    const i = Number(r.index), bank = !['ADX', 'WAV', 'STR'].includes(r.format) && !/^DTPK (ADPCM|PCM)/.test(r.format), lo = Math.floor(i / 100) * 100, file = r.file.toUpperCase()
     out.items.push({ id: 'snd:' + file + ':' + r.index, kind: 'audio', ref: file + ':' + r.index, group: file, sub: bank ? 'Sound bank' : '#' + lo + ' to #' + (lo + 99),
-      subLabel: '', subKey: bank ? '0' : String(lo + 1).padStart(6, '0'), name: tidy(r.name || ''), hex: bank ? r.format : '#' + i, named: !!r.name || !bank,
+      subLabel: '', subKey: bank ? '0' : String(lo + 1).padStart(8, '0'), name: tidy(r.name || ''), hex: bank ? r.format : '#' + i, named: !!r.name || !bank,
       num: i, row: r, dur: !bank && r.seconds ? fmtDur(Number(r.seconds)) : '', bank, file })
   }
 }

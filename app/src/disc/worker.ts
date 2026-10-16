@@ -302,10 +302,17 @@ async function texture(file: string, offset: number, w: number, h: number, type:
   return cv.convertToBlob({ type: 'image/png' })
 }
 
-async function audio(file: string, offset: number, bytes: number) {
+async function audio(file: string, offset: number, bytes: number, format = '') {
   const f = files.get(file)
   if (!f) return null
   const raw = await disc!.part(f, offset, bytes)
+  if (format.startsWith('DTPK ')) {                           // a sample of a DTPK sound pack: raw data, played at the nominal rate sounds.ts gives
+    const rate = 22050
+    if (format === 'DTPK ADPCM') return new Blob([pcmWav(adpcm(raw), rate)], { type: 'audio/wav' })
+    if (format === 'DTPK PCM16') return new Blob([pcmWav(new Int16Array(raw.buffer.slice(raw.byteOffset, raw.byteOffset + (raw.length & ~1))), rate)], { type: 'audio/wav' })
+    if (format === 'DTPK PCM8') return new Blob([pcmWav(Int16Array.from(raw, (x) => (x << 24 >> 24) * 256), rate)], { type: 'audio/wav' })
+    return null
+  }
   if (raw.length > 22 && raw[0] === 0x52 && raw[1] === 0x49 && raw[2] === 0x46 && raw[3] === 0x46) {     // a WAVE file: plain PCM (format tag 1) plays as it is
     const tag = raw[20] | raw[21] << 8, ch = raw[22] | raw[23] << 8, bits = raw[34] | raw[35] << 8
     if (tag === 1) return new Blob([raw], { type: 'audio/wav' })

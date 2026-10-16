@@ -42,6 +42,28 @@ async function ratSounds(size: number, head: Uint8Array, read: (offset: number, 
   return out
 }
 
+/** The samples of a DTPK sound pack (the AM2 sound driver's) at `base` of a file, `size` bytes long. The pack's sample table is at the offset in
+ * its word at +0x3C: a count (the last index), then 16-byte entries {format << 24 | data offset (from the pack's start), loop start, loop end, 0,
+ * data size}; format 0 is PCM16, 1 PCM8, 3 the sound chip's 4-bit ADPCM. A row's index is the entry's number * 10000 + the sample's. The pack does not
+ * record a rate (a program's pitch sets it): rows carry 22050 as the rate to play at. */
+const DTPK_RATE = 22050
+async function dtpkSounds(entry: number, base: number, size: number, read: (offset: number, n: number) => Promise<Uint8Array>): Promise<Sound[]> {
+  const head = await read(base, 0x40)
+  if (head.length < 0x40) return []
+  const t = new DataView(head.buffer, head.byteOffset, head.byteLength).getUint32(0x3C, true)
+  if (t + 8 > size) return []
+  const cv = await read(base + t, 4), count = new DataView(cv.buffer, cv.byteOffset, cv.byteLength).getUint32(0, true) + 1
+  if (!(count > 0 && count < 10000) || t + 4 + 16 * count > size) return []
+  const table = await read(base + t + 4, 16 * count), v = new DataView(table.buffer, table.byteOffset, table.byteLength), rows: Sound[] = []
+  for (let k = 0; k < count; k++) {
+    const w = v.getUint32(16 * k, true), bytes = v.getUint32(16 * k + 12, true), fmt = w >>> 24, at = w & 0xFFFFFF
+    if (!bytes || at + bytes > size) continue
+    const known = fmt === 3 ? ['DTPK ADPCM', bytes * 2] as const : fmt === 0 ? ['DTPK PCM16', bytes >> 1] as const : fmt === 1 ? ['DTPK PCM8', bytes] as const : null
+    rows.push({ index: entry * 10000 + k, offset: base + at, bytes, format: known ? known[0] : 'DTPK format ' + fmt, channels: 1, rate: DTPK_RATE, samples: known ? known[1] : null })
+  }
+  return rows
+}
+
 /** The sounds of a file of `size` bytes; read(offset, n) gives any n bytes of it. */
 export async function find(size: number, read: (offset: number, n: number) => Promise<Uint8Array>): Promise<Sound[]> {
   const head = await read(0, Math.min(size, 4096))
@@ -53,11 +75,13 @@ export async function find(size: number, read: (offset: number, n: number) => Pr
     for (let i = 0; i < n; i++) {
       const off = tv.getUint32(8 + 8 * i, true), sz = tv.getUint32(12 + 8 * i, true)
       if (!sz || off + 16 > size) continue
-      const info = adxInfo(await read(off, 16))
+      const first = await read(off, 16)
+      if (tag(first, 'DTPK')) { rows.push(...(await dtpkSounds(i, off, sz, read))); continue }     // a sound pack inside the archive: its samples
+      const info = adxInfo(first)
       rows.push(info ? { index: i, offset: off, bytes: sz, format: info[0], channels: info[1], rate: info[2], samples: info[3] }
         : { index: i, offset: off, bytes: sz, format: 'unknown', channels: null, rate: null, samples: null })
     }
-    return rows.some((r) => r.format === 'ADX' || r.format === 'AHX') ? rows : []
+    return rows.some((r) => r.format === 'ADX' || r.format === 'AHX' || r.format.startsWith('DTPK ')) ? rows : []
   }
   if (tag(head, 'RAT\0')) return ratSounds(size, head, read)
   const info = adxInfo(head)

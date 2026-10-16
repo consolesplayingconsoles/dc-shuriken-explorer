@@ -120,5 +120,5 @@ export async function imageUrl(p: Picture): Promise<{ url: string | null; palett
   return { url, palette: palettes.get(key) || '' }
 }
 export function audioUrl(r: Record<string, string>): Promise<string | null> {
-  return blobUrl(['snd', r.file.toUpperCase(), r.offset, r.bytes].join('|'), () => call<Blob | null>('audio', r.file.toUpperCase(), parseInt(r.offset, 16), Number(r.bytes)))
+  return blobUrl(['snd', r.file.toUpperCase(), r.offset, r.bytes, r.format].join('|'), () => call<Blob | null>('audio', r.file.toUpperCase(), parseInt(r.offset, 16), Number(r.bytes), r.format))
 }

@@ -43,7 +43,7 @@ const fw = new Words(read('flat.bin'))
 cases['flat:flat.bin'] = findModels(fw).map((m) => [m.offset, m.records.length, m.records.reduce((n, r) => n + fw.w[r + 19], 0), r3(header(fw, m.offset).radius), Math.max(...m.records.map((r) => fw.i[r + 8]))])
 cases['pressed:pressed.bin'] = pressedBlocks(read('pressed.bin')).map((b) => [b.at, b.name, b.data.length, hex(b.data), b.end])
 for (const n of ['pic_pvm.bin', 'pic_gif.bin', 'pic_png.bin', 'pic_jpg.bin', 'tr4.bin']) cases['pictures:' + n] = findPictures(read(n)).map((m) => [m.offset, m.kind, m.w, m.h, m.dt, m.pf, m.bytes, m.name])
-for (const n of ['snd_afs.bin', 'snd_adx.bin', 'snd_other.bin', 'snd_dtpk.bin', 'snd_wav.bin', 'snd_wav4.bin', 'snd_smlt.bin', 'snd_smpb.bin', 'snd_str.bin', 'snd_rat.bin']) {
+for (const n of ['snd_afs.bin', 'snd_afs_dtpk.bin', 'snd_adx.bin', 'snd_other.bin', 'snd_dtpk.bin', 'snd_wav.bin', 'snd_wav4.bin', 'snd_smlt.bin', 'snd_smpb.bin', 'snd_str.bin', 'snd_rat.bin']) {
   const d = read(n)
   cases['sounds:' + n] = (await findSounds(d.length, async (o, k) => d.slice(o, o + k))).map((r) => [r.index, r.offset, r.bytes, r.format, r.channels, r.rate, r.samples])
 }

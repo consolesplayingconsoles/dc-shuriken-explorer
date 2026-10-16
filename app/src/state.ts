@@ -253,19 +253,23 @@ export async function load() {
   const parsed = S.map.text ? parseDcgs(S.map.text) : null
   const sections = parsed && readsMap(parsed.version) ? parsed.sections : {}
   // The disc is scanned now that its decomp is known: a map that lists the pictures spares the scan for them.
-  if (!scanned || (!scanned.pictures && !sections.images) || (!scanned.sounds && !sections.audio)) {
+  if (!scanned || (!scanned.pictures && !sections.images) || !scanned.sounds) {
     let sc: Awaited<ReturnType<typeof scanDisc>>
-    try { sc = await scanDisc(!!sections.images, !!sections.audio) } catch (e) {
+    try { sc = await scanDisc(!!sections.images, false) } catch (e) {
       S.loading = false; S.opening = ''
       return modal('Could Not Read the Disc', (e as Error).message)
     }
-    models = sc.models; pictures = sc.pictures; sounds = sc.sounds; ninjaRigs = sc.rigs; scanned = { pictures: !sections.images, sounds: !sections.audio }
+    models = sc.models; pictures = sc.pictures; sounds = sc.sounds; ninjaRigs = sc.rigs; scanned = { pictures: !sections.images, sounds: true }
   }
   const pairs = (S.map.rules || '').split('\n').map((l) => l.replace(/#.*/, '').trim().split(/\s+/))         // `motions <model file> <motion file>`
     .filter((t) => t[0] === 'motions' && t.length === 3).map((t) => [t[1], t[2]] as [string, string])
   if (pairs.length) ninjaRigs = await rigsFor(pairs)            // the scan paired by file sets alone; the decomp's rules may add more
   if (!sections.images) sections.images = pictures                // a plain disc: its own pictures and sounds; a decomp's map names them
   if (!sections.audio) sections.audio = sounds
+  else {                                                          // the map's sounds, and the samples of the DTPK packs it does not open (its rows name no samples yet)
+    const have = new Set(sections.audio.map((r) => r.file.toUpperCase() + '|' + r.index))
+    sections.audio = [...sections.audio, ...sounds.filter((r) => r.format.startsWith('DTPK ') && !have.has(r.file.toUpperCase() + '|' + r.index))]
+  }
   const b = build(models.map((m) => ({ ...m })), sections, S.map.rules || '',
     [...(S.map.code ? codeItems(functionsOf(S.map.code)) : []), ...textItems(S.map.textFiles || [])], ninjaRigs)
   applyHidden(S.disc ? S.disc.product : undefined, S.disc ? S.disc.version : undefined, b.items)
