@@ -1,5 +1,7 @@
 # dc-shuriken-explorer
 
+**Open it in your browser: [consolesplayingconsoles.github.io/dc-shuriken-explorer](https://consolesplayingconsoles.github.io/dc-shuriken-explorer/)**
+
 Browse a Sega Dreamcast game's models, skeletons, animations, textures, sounds and code in your browser.
 You open your own copy of the game and it stays on your computer: nothing is uploaded.
 A plain disc shows static assets; add the game's decomp and you also get assembled, textured and animated models 
