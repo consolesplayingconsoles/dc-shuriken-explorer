@@ -20,7 +20,7 @@ These games have active dc-decomp-kickoff projects in different levels of comple
 | [Illbleed](https://github.com/consolesplayingconsoles/illbleed-decomp)               | Crazy Games         | 2001 |   ✅    |    ✅     |     ✅     |   ✅    |   ✅    |  ✅   | [T45601M](app/src/games/T45601M) | Most sounds are listed but not decoded                                  |
 | [Sonic Adventure](https://github.com/consolesplayingconsoles/sonic-adventure-decomp) | Sonic Team          | 1998 |   ✅    |    ✅     |     ✅     |   ✅    |   ✅    |  ✅   |                                  | Textures not mapped correctly (mapper in progress, needs deeper decomp) |
 | [Virtua Tennis](https://github.com/consolesplayingconsoles/virtua-tennis-decomp)     | Hitmaker            | 2000 |   ✅    |    ✅     |     ✅     |   ✅    |   ✅    |  ✅   |                                  |                                                                         |
-| [Zombie Revenge](https://github.com/consolesplayingconsoles/zombie-revenge-decomp)   | Sega AM1, Data East | 1999 |   ✅    |    ❔     |     ❔     |   ✅    |   ✅    |  ✅   |                                  |                                                                         |
+| [Zombie Revenge](https://github.com/consolesplayingconsoles/zombie-revenge-decomp)   | Sega AM1, Data East | 1999 |   ✅    |    ❌     |     ❌     |   ✅    |   ✅    |  ✅   |                                  | Most recent decomp, still early to find textures and skeletons          |
 
 ## Tested without an existing dc-decomp-kickoff repo
 
