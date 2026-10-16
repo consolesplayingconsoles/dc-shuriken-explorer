@@ -359,8 +359,8 @@ export async function writeRule(dir: FileSystemDirectoryHandle, kind: 'name' | '
    A map's first line, `# dcgs <version>`, is the version of the skill that wrote it (vX.Y, vX.Y+<commit>, or
    `unstable` for the skill's main branch). Every version from FLOOR up is read; a change that is not backwards
    compatible adds a reader from the version that brings it. Older projects are upgraded with the skill, not read.
-   FLOOR is v0.6 now and becomes v1.0 when Shuriken Explorer goes live.                                           */
-const FLOOR = [0, 6]
+   FLOOR is v1.0: a project from an older skill is upgraded with the skill first.                                  */
+const FLOOR = [1, 0]
 const READERS: { from: number[]; read: (text: string) => Dcgs }[] = [
   { from: FLOOR, read: readV1 },
 ]

@@ -5,6 +5,10 @@ You open your own copy of the game and it stays on your computer: nothing is upl
 A plain disc shows static assets; add the game's decomp and you also get assembled, textured and animated models 
 as well as C and assembly code side by side. See the asset list below.
 
+![A skeleton animating over a character, in Shuriken Explorer](img/skeleton.gif)
+
+*An illustration of how the tool works: no game assets are stored in this repository.*
+
 > A decomp is a reverse-engineering project for one game: its code rewritten function by function as C, and its files
 mapped and named. [dc-decomp-kickoff](https://github.com/consolesplayingconsoles/dc-decomp-kickoff) starts one from
 your own disc, and Shuriken Explorer reads what it produces. A decomp straight out of dc-decomp-kickoff already
@@ -40,7 +44,7 @@ intellectual property and cannot be distributed or commercialised (this is not l
 | PRS streams tagged `PRESSED`                                        | Models, model textures, images | Only for model textures | Each stream is read as a file of its own, named `file@offset`: the tag, then a size and a name, or the stream itself                                     |
 | Quake 3 models (`MD3`)                                              | Models                         | No                      | Every surface of an `IDP3` version 15 model, in plain files and inside ZIP archives                                                                      |
 | RAT archives                                                        | Sounds                         | No                      | Sound effects are listed, not played; the textures, sprites and models inside are not read yet                                                           |
-| `PRM` mesh files                                      | Models                         | No                      | One model per file: 16-bit polygon and vertex counts, 60-byte polygons (triangles and quads), 24-byte vertices; untextured                               |
+| `PRM` mesh files                                                    | Models                         | No                      | One model per file: 16-bit polygon and vertex counts, 60-byte polygons (triangles and quads), 24-byte vertices; untextured                               |
 | Sega PRS compression (`.PRS` files)                                 | Models, model textures, images | Only for model textures | Read through it: offsets are into the decompressed data                                                                                                  |
 | SH-4 code                                                           | Functions                      | Yes                     | Disassembled in the page, from the decomp's function list                                                                                                |
 | Tagged model blocks                                                 | Models                         | No                      | A count and a table of offsets, each body tagged with four letters and holding a node tree of mesh groups drawn from N64-style display lists; untextured |
@@ -84,6 +88,26 @@ dc-decomp-kickoff and Shuriken Explorer stronger for everyone.
 General formats and practices are shared when possible. Scans run on all games and are in sync with the dc-decomp-kickoff project. The sync is validated by pre-commit hooks.
 Costly logic that applies to only one game must be stored in per-game plugins (see the [list of games](GAMES.md) for examples) to avoid an
 infinitely growing load step.
+
+## Screenshots
+
+![A textured character model, listed with its skeletons, textures and images](img/model.png)
+
+*Graphics: a character model from the Sonic Adventure decomp, textured, with the skeletons and images listed beside it.*
+
+![A sound playing, with its format, rate and length](img/audio.png)
+
+*Audio: a song playing from the Crazy Taxi decomp, with its format, rate and length.*
+
+![A game's text read through a plugin](img/text.png)
+
+*Text: the gadget names of Boku Doraemon, read through its plugin.*
+
+![A function's C beside the original SH-4 disassembly, with its test cases](img/code.png)
+
+*Code: a function's C beside the original SH-4 disassembly, in the Crazy Taxi decomp.*
+
+The images in this README are illustrations of how the tool works: no game assets are stored in this repository.
 
 ## See it in action
 
