@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Shuriken Explorer pre-commit: the page stays correct and keeps up with the skill.
+#   1. type check
+#   2. its readers agree with the skill's on the same synthetic inputs, and it has a reader for every version
+#      the skill says broke compatibility (app/test/run.sh)
+# Enable once per clone:  git config core.hooksPath .githooks
+# To skip in a pinch:     git commit --no-verify
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+echo "[pre-commit] type check..."
+(cd app && yarn -s vue-tsc --noEmit)
+echo "[pre-commit] readers and versions against the skill..."
+bash app/test/run.sh

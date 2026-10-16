@@ -1,0 +1,16 @@
+# Game files never go in this repo: the user opens their own disc.
+*.BIN
+*.bin
+*.gdi
+*.raw
+*.cdi
+*.chd
+*.iso
+extracted/
+build/
+dist/
+__pycache__/
+.DS_Store
+
+.env
+app/node_modules/
