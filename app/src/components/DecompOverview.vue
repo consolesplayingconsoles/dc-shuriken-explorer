@@ -2,10 +2,10 @@
 // The decomp at a glance: its progress block (from its README), the main figure first.
 import { computed } from 'vue'
 import { S } from '../state'
-import { capitalise, facts, progressRows } from '../lib/progress'
+import { capitalise, facts, mainRow, progressRows } from '../lib/progress'
 
 const rows = computed(() => progressRows((S.map && S.map.readme) || ''))
-const main = computed(() => rows.value.find((r) => r.pct !== null) || null)
+const main = computed(() => mainRow(rows.value))
 </script>
 
 <template>

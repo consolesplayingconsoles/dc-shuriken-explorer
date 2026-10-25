@@ -6,6 +6,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 skill="${KICKOFF_SKILL:-$HOME/workspace/skills/dc-decomp-kickoff}"
 [ -f "$skill/tests/compat/emit.py" ] || { echo "[parity] the skill is not at $skill (set KICKOFF_SKILL): the readers cannot be compared" >&2; exit 1; }
+node --import ./test/register.mjs test/progress.ts
 tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
 python3 "$skill/tests/compat/emit.py" --write "$tmp/files" > "$tmp/py.json"
 node --import ./test/register.mjs test/parity.ts "$tmp/files" "$skill/VERSION" "$skill/tests/compat/golden.json" > "$tmp/ts.json"

@@ -89,7 +89,7 @@ export const tidy = (t: string) => t.replace(/[()[\]]/g, '').replace(/_/g, ' ').
 export const nameOf = (m: Item) => m.name || m.hex || m.id
 
 // Reader 1: the map as tab-separated sections.
-function readV1(text: string): Dcgs {
+function readV2(text: string): Dcgs {
   const out: Dcgs = { version: '', sha: '', base: 0, sections: {} }
   let rows: Row[] | null = null, head: string[] | null = null
   for (const line of text.split(/\r?\n/)) {
@@ -359,10 +359,10 @@ export async function writeRule(dir: FileSystemDirectoryHandle, kind: 'name' | '
    A map's first line, `# dcgs <version>`, is the version of the skill that wrote it (vX.Y, vX.Y+<commit>, or
    `unstable` for the skill's main branch). Every version from FLOOR up is read; a change that is not backwards
    compatible adds a reader from the version that brings it. Older projects are upgraded with the skill, not read.
-   FLOOR is v1.0: a project from an older skill is upgraded with the skill first.                                  */
-const FLOOR = [1, 0]
+   FLOOR is v2.0: v1 was never adopted, so it has no reader and a project from it is upgraded with the skill first. */
+const FLOOR = [2, 0]
 const READERS: { from: number[]; read: (text: string) => Dcgs }[] = [
-  { from: FLOOR, read: readV1 },
+  { from: FLOOR, read: readV2 },
 ]
 export const readerStarts = READERS.map((r) => r.from)       // the version each reader starts at (a check compares it with the skill's compatibility list)
 const parts = (v: string) => { const m = v.match(/^v(\d+)\.(\d+)(\+[0-9a-f]{7})?$/); return m ? [Number(m[1]), Number(m[2])] : null }

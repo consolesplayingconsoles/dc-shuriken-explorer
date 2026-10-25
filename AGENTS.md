@@ -52,8 +52,8 @@ and maps that don't have it yet still read as before.
 ## 6. Versions
 
 The map carries the skill's version (`# dcgs <version>`). Shuriken reads every map version from its floor up,
-through its version table: v1.0 is the floor. A breaking format change adds a reader entry, and older
-versions are dropped by raising the floor.
+through its version table: v2.0 is the floor (v1 was never adopted, so it has no reader and the progress report is read in the
+v2 format only). A breaking format change adds a reader entry, and older versions are dropped by raising the floor.
 
 ## 7. Categories and order
 
