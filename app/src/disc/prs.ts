@@ -5,9 +5,11 @@ export function decompress(src: Uint8Array): Uint8Array | null {
   return r ? r.data : null
 }
 
-/** The original bytes and the number of bytes of src the stream took (end marker included), or null when it is not PRS. */
-export function stream(src: Uint8Array): { data: Uint8Array; used: number } | null {
-  let out = new Uint8Array(Math.max(1024, Math.min(src.length * 4, 1 << 20))), len = 0, pos = 0, ctrl = 0, bits = 0
+/** The original bytes and the number of bytes of src the stream took (end marker included), or null when it is not PRS.
+ *  whole: called once with the first 32 bytes of output, the whole output's size when they tell it (null when not): the
+ *  stream stops there, for a stream with no end marker (some games' PVR textures end where the texture does, then padding). */
+export function stream(src: Uint8Array, whole?: (head: Uint8Array) => number | null): { data: Uint8Array; used: number } | null {
+  let out = new Uint8Array(Math.max(1024, Math.min(src.length * 4, 1 << 20))), len = 0, pos = 0, ctrl = 0, bits = 0, want = 0
   const need = (n: number) => {
     if (len + n <= out.length) return
     const grown = new Uint8Array(Math.max(out.length * 2, len + n))
@@ -20,6 +22,10 @@ export function stream(src: Uint8Array): { data: Uint8Array; used: number } | nu
   }
   try {
     for (;;) {
+      if (whole && len >= 32) {
+        if (want === 0) want = whole(out.slice(0, 32)) || -1
+        if (want > 0 && want <= len) return { data: out.slice(0, want), used: pos }
+      }
       if (flag()) {                                         // a literal byte
         if (pos >= src.length) return null
         need(1); out[len++] = src[pos++]

@@ -60,7 +60,7 @@ export interface Item {
   ninja?: string
 }
 // A picture of the disc: where it is, its kind ('pvr' textures are decoded here; GIF, JPEG and PNG shown as they are).
-export interface Picture { file: string; offset: number; kind: 'pvr' | 'gif' | 'jpg' | 'png' | 'tr4'; w: number; h: number; pf: number; dt: number; bytes: number; name: string }
+export interface Picture { file: string; offset: number; kind: 'pvr' | 'raw' | 'gif' | 'jpg' | 'png' | 'tr4'; w: number; h: number; pf: number; dt: number; bytes: number; name: string }
 
 const folderOf = (file: string) => (file.includes('/') ? file.slice(0, file.lastIndexOf('/')) : 'Root')
 const stemOf = (file: string) => file.slice(file.lastIndexOf('/') + 1).replace(/\.[^.]*$/, '')

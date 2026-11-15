@@ -1,7 +1,7 @@
 // The page's state and what changes it: the open game, the decomp's map, the open kind and the selected item.
 import { computed, reactive, ref, shallowRef } from 'vue'
 import type { Mesh } from './lib/api'
-import { call, forgetDisc, forgetUrls, openFiles, pickDisc, recentDiscs, rememberDisc, reopenFiles, rigsFor, scanDisc } from './lib/source'
+import { call, forgetDisc, forgetUrls, openFiles, pickDisc, recentDiscs, rememberDisc, reopenFiles, pluginImages, pluginTextures, rigsFor, scanDisc } from './lib/source'
 import { mapVersion, readsMap, build, parseDcgs, texKey, tidy, nameOf, writeRule, type Built, type Item, type Kind } from './lib/dcgs'
 import type { Motion } from './lib/pose'
 import { KINDS } from './lib/nav'
@@ -270,6 +270,10 @@ export async function load() {
     const have = new Set(sections.audio.map((r) => r.file.toUpperCase() + '|' + r.index))
     sections.audio = [...sections.audio, ...sounds.filter((r) => r.format.startsWith('DTPK ') && !have.has(r.file.toUpperCase() + '|' + r.index))]
   }
+  const extraImages = await pluginImages().catch(() => [])          // pictures the game's plugin knows and the core does not find
+  if (extraImages.length) sections.images = [...(sections.images || []), ...extraImages]
+  const extraTextures = await pluginTextures().catch(() => [])      // textures the game's plugin gives to models
+  if (extraTextures.length) sections.textures = [...(sections.textures || []), ...extraTextures]
   const b = build(models.map((m) => ({ ...m })), sections, S.map.rules || '',
     [...(S.map.code ? codeItems(functionsOf(S.map.code)) : []), ...textItems(S.map.textFiles || [])], ninjaRigs)
   applyHidden(S.disc ? S.disc.product : undefined, S.disc ? S.disc.version : undefined, b.items)

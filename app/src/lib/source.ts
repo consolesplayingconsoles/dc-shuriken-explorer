@@ -32,6 +32,10 @@ export function scanDisc(skipPictures: boolean, skipSounds: boolean): Promise<Sc
   return call<Scanned>('scanDisc', skipPictures, skipSounds)
 }
 /** The skeletons of the scanned disc under the decomp's `motions` rules. */
+/** The pictures the game's plugin adds to the core's (rows of the map's [images] section). */
+export function pluginImages(): Promise<Record<string, string>[]> { return call('pluginImages') }
+/** The textures the game's plugin gives to models (rows of the map's [textures] section). */
+export function pluginTextures(): Promise<Record<string, string>[]> { return call('pluginTextures') }
 export function rigsFor(pairs: [string, string][]): Promise<Scanned['rigs']> {
   return call<Scanned['rigs']>('rigsFor', pairs)
 }

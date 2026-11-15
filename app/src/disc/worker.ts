@@ -7,6 +7,7 @@ import { mesh as ninjaMesh, meshRaw, type Found as Ninja } from './ninja'
 import { find as findNinjaMotions, findImages as findMotionImages, imageKeys, keys as motionKeys } from './njmotion'
 import { poseAt } from './ninjapose'
 import { decompress } from './prs'
+import { fileDecoder, imageRows, motionAt as pluginMotionAt, motionList as pluginMotionList, textureRows } from '../lib/plugins'
 import { blockAt } from './pressed'
 import { find as findPictures, type Found as Pic } from './pictures'
 import { find as findSounds } from './sounds'
@@ -34,13 +35,15 @@ const trees = new Map<string, { file: string; offset: number; base: number; node
 const poses = new Map<string, import('./njmotion').Keys[]>()      // the keys of motions asked for
 const md3s = new Map<string, { file: string; offset: number }>()      // Quake 3 models
 const taggedModels = new Map<string, { file: string; offset: number; size: number; tag: string }>()      // models of a tagged model block
+let fileDecode: ReturnType<typeof fileDecoder>                          // the game plugin's decoder for files compressed in a way of its own
+let gameProduct = '', gameVersion = ''
 let nodeTransform: ReturnType<typeof taggedTransform>                  // the game plugin's transform for tagged model nodes
 const decomp = new Map<string, Uint8Array>()                       // decompressed .PRS files asked for since the disc opened
 const motionLists = new Map<string, { offset: number; frames: number; bones: number; addr: number; count: number }[]>()
 
 // A file's bytes as the game sees them: a .PRS file (Sega's compression) is decompressed, so offsets into it are offsets into the
 // decompressed data. One that does not decompress is taken as it is.
-const plain = (name: string, raw: Uint8Array): Uint8Array => (name.endsWith('.PRS') ? decompress(raw) || raw : raw)
+const plain = (name: string, raw: Uint8Array): Uint8Array => (name.endsWith('.PRS') ? decompress(raw) || raw : (fileDecode && fileDecode(name, raw)) || raw)
 // A pressed block of a file is a file of its own, named `file@hexoffset` (the offset of its tag): it is decompressed again from there.
 const blockOf = (name: string): { parent: string; at: number } | null => {
   const cut = name.lastIndexOf('@')
@@ -157,6 +160,7 @@ async function open(picked: File[]) {
     if (txt(0, 15) === 'SEGA SEGAKATANA') { product = txt(0x40, 0x4A); version = txt(0x4A, 0x50) }
   } catch { /* a disc this reader cannot place: no product number */ }
   nodeTransform = taggedTransform(product, version)
+  fileDecode = fileDecoder(product, version); gameProduct = product; gameVersion = version
   return { game: disc.name, sha1, product, version }
 }
 
@@ -259,6 +263,13 @@ const MIME: Record<string, string> = { gif: 'image/gif', jpg: 'image/jpeg', png:
 async function image(file: string, offset: number, kind: string, w: number, h: number, dt: number, pf: number, bytes: number) {
   const blk = blockOf(file), f = files.get(blk ? blk.parent : file)
   if (!f) throw new Error('No file ' + file + ' on this disc.')
+  if (kind === 'raw') {                                      // a bare texture, no PVRT header: pixels at `offset` of the file's bytes as the game sees them
+    const rgba = decode(await fileBytes(file), offset, w, h, dt, pf)
+    if (!rgba) return null
+    const cv = new OffscreenCanvas(w, h)
+    cv.getContext('2d')!.putImageData(new ImageData(rgba as Uint8ClampedArray<ArrayBuffer>, w, h), 0, 0)
+    return { blob: await cv.convertToBlob({ type: 'image/png' }), palette: '' }
+  }
   if (kind === 'tr4') {                                      // a texture page of a level file, inside a zlib block
     const rgba = tr4Page(await fileBytes(file), dt, pf)
     if (!rgba) return null
@@ -332,6 +343,7 @@ async function audio(file: string, offset: number, bytes: number, format = '') {
 
 // A file's motions in a format: `v` (V format) or `e16` (16-bit Euler keys). `count` = the frames it plays.
 async function motions(file: string, format = 'v') {
+  if (format === 'e16') { const mine = await pluginMotionList(gameProduct, gameVersion, discView(), file); if (mine) return mine }       // a file the game's plugin reads
   const key = file + '|' + format
   if (!motionLists.has(key)) {
     const W = await wordsOf(file)
@@ -343,11 +355,22 @@ async function motions(file: string, format = 'v') {
 }
 
 async function motion(file: string, offset: number, format = 'v') {
+  if (format === 'e16') { const mine = await pluginMotionAt(gameProduct, gameVersion, discView(), file, offset); if (mine) return mine }
   await motions(file, format)
   if (!motionLists.get(file + '|' + format)!.some((m) => m.offset === offset)) throw new Error('No such motion.')
   const W = await wordsOf(file)
   return format === 'e16' ? { format, ...e16Keys(W, new Uint8Array(W.w.buffer), offset) } : { format, ...frames(W, offset) }
 }
+
+/** What a game's plugin sees of the open disc: its files as they are stored. */
+const discView = () => ({
+  names: () => [...files.keys()],
+  read: async (name: string) => { const f = files.get(name.toUpperCase()); if (!f) throw new Error('No file ' + name + ' on this disc.'); return disc!.read(f.lba, f.size) },
+})
+/** The pictures the game's plugin adds (none for a game without a plugin). */
+async function pluginImages() { return imageRows(gameProduct, gameVersion, discView()) }
+/** The textures the game's plugin gives to models. */
+async function pluginTextures() { return textureRows(gameProduct, gameVersion, discView()) }
 
 const OPS: Record<string, (...a: never[]) => Promise<unknown>> = {
   async bytes(file: string) {
@@ -356,7 +379,7 @@ const OPS: Record<string, (...a: never[]) => Promise<unknown>> = {
     if (!f) throw new Error('No file ' + file + ' on this disc.')
     return disc!.read(f.lba, f.size)
   },
-  open, scanDisc, texture, image, audio, motions, motion,
+  open, scanDisc, texture, image, audio, motions, motion, pluginImages, pluginTextures,
   rigsFor: async (pairs: [string, string][]) => rigsFor(pairs),
   // A Ninja model's motions: those of the files of its set with as many nodes as the model has objects; each has a key, its file and offset.
   async ninjaMotions(id: string) {

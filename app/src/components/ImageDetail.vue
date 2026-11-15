@@ -34,7 +34,7 @@ const fmtInt = (n: number) => n.toLocaleString('en-US')
       <div class="stack side-col">
         <section class="card"><div class="card-b"><dl class="facts">
           <div><dt>Size</dt><dd class="mono">{{ p.w }} x {{ p.h }}</dd></div>
-          <template v-if="p.kind === 'pvr'">
+          <template v-if="p.kind === 'pvr' || p.kind === 'raw'">
             <div><dt>Format</dt><dd>{{ PF[p.pf] || p.pf }}</dd></div>
             <div><dt>Type</dt><dd>{{ DT[p.dt] || 'Type ' + p.dt }}</dd></div>
           </template>
