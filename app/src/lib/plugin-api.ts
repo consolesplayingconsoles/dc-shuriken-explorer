@@ -37,6 +37,7 @@ export interface TaggedNode { type: number; at: number; data: DataView }
 export interface GamePlugin {
   name: string                                    // the game and region, for people (the folder is named after the game's product number, so each region has its own plugin)
   versions?: readonly string[]                    // the versions of that product it serves (V1.003, ...); none listed means every version
+  executable?: string                             // the disc file that holds the game's code, when it is not 1ST_READ.BIN (a boot file that only loads it): its hash identifies the disc, its bytes are the ones the decomp map's addresses point into
   hidden?: (item: Readonly<Item>) => boolean      // items to hide by default (the user can show them again)
   text?: () => {                                  // the Text tab
     strategies?: TextStrategy[]

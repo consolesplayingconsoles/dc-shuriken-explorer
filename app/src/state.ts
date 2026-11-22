@@ -7,7 +7,7 @@ import type { Motion } from './lib/pose'
 import { KINDS } from './lib/nav'
 import { codeItems, functionsOf, names as codeNamesOf, type CodeFiles } from './lib/code'
 import { textItems, TEXT_DIR } from './lib/text'
-import { applyHidden } from './lib/plugins'
+import { applyHidden, executableName } from './lib/plugins'
 
 /** Where a decomp's files are read from (a folder of this computer). */
 interface Source {
@@ -519,6 +519,6 @@ export function motionAt(file: string, offset: string, format: string): Promise<
 /* ── The executable's bytes (for disassembly), once per disc ── */
 let exeBytes: Promise<Uint8Array> | null = null
 export function executable(): Promise<Uint8Array> {
-  if (!exeBytes) exeBytes = call<Uint8Array>('bytes', '1ST_READ.BIN')
+  if (!exeBytes) exeBytes = call<Uint8Array>('bytes', executableName(S.disc ? S.disc.product : undefined, S.disc ? S.disc.version : undefined))
   return exeBytes
 }

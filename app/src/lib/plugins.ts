@@ -11,6 +11,12 @@ export function pluginFor(product: string | undefined, version?: string) {
   return p && (!p.versions || !version || p.versions.includes(version)) ? p : undefined
 }
 
+/** The disc file that holds the game's code: the plugin's `executable`, else the boot file every disc names. Upper case, as the disc's file table is keyed. */
+export function executableName(product: string | undefined, version?: string): string {
+  const p = pluginFor(product, version)
+  return ((p && p.executable) || '1ST_READ.BIN').toUpperCase()
+}
+
 /** Marks the items the game's plugin asks to hide. Nothing is removed: the list can show them again. */
 export function applyHidden(product: string | undefined, version: string | undefined, items: Item[]) {
   const p = pluginFor(product, version)

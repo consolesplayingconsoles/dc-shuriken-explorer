@@ -15,7 +15,7 @@ import { STRETCH, starts as stretchStarts } from './stretch'
 import { ModelScan, scanBuffer } from './scan'
 import { mesh as md3Mesh } from './md3'
 import { mesh as taggedMesh } from './tagged'
-import { taggedTransform } from '../lib/plugins'
+import { executableName, taggedTransform } from '../lib/plugins'
 import { mesh as prmMesh } from './prm'
 import { mesh as tr4Mesh, page as tr4Page } from './tr4'
 import { memberAt } from './zip'
@@ -152,13 +152,13 @@ async function open(picked: File[]) {
   disc = await Disc.open(picked)
   files = new Map(); words.clear(); found.clear(); ninja.clear(); trees.clear(); decomp.clear(); motionLists.clear()
   for (const f of await disc.files()) files.set(f.path.replace(/^\//, '').toUpperCase(), f)
-  const boot = files.get('1ST_READ.BIN')
-  const sha1 = boot ? [...new Uint8Array(await crypto.subtle.digest('SHA-1', await disc.read(boot.lba, boot.size)))].map((b) => b.toString(16).padStart(2, '0')).join('') : ''
   let product = '', version = ''                         // the game's product number and version, from its IP.BIN (the first sector of the high-density area)
   try {
     const ip = await disc.read(HD_START, 2048), txt = (a: number, b: number) => String.fromCharCode(...ip.subarray(a, b)).trim()
     if (txt(0, 15) === 'SEGA SEGAKATANA') { product = txt(0x40, 0x4A); version = txt(0x4A, 0x50) }
   } catch { /* a disc this reader cannot place: no product number */ }
+  const boot = files.get(executableName(product, version))   // the file that holds the game's code: the boot file, unless the game's plugin names another
+  const sha1 = boot ? [...new Uint8Array(await crypto.subtle.digest('SHA-1', await disc.read(boot.lba, boot.size)))].map((b) => b.toString(16).padStart(2, '0')).join('') : ''
   nodeTransform = taggedTransform(product, version)
   fileDecode = fileDecoder(product, version); gameProduct = product; gameVersion = version
   return { game: disc.name, sha1, product, version }
